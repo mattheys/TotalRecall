@@ -7,6 +7,9 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using TotalRecall.Controllers;
+using Microsoft.AspNetCore.ResponseCompression;
+using System.IO.Compression;
 
 namespace TotalRecall
 {
@@ -28,6 +31,13 @@ namespace TotalRecall
         public void ConfigureServices(IServiceCollection services)
         {
             // Add framework services.
+            services.Configure<GzipCompressionProviderOptions>(options => options.Level = CompressionLevel.Optimal);
+            services.AddResponseCompression(options =>
+            {
+                options.Providers.Add<GzipCompressionProvider>();
+            });
+
+
             services.AddMvc();
         }
 
@@ -48,12 +58,19 @@ namespace TotalRecall
             }
 
             app.UseStaticFiles();
+            app.UseResponseCompression();
 
             app.UseMvc(routes =>
             {
                 routes.MapRoute(
-                    name: "default",
-                    template: "{controller=Home}/{action=Index}/{id?}");
+                    name: "Apps",
+                    template: "Apps/{action}/{publicKey?}/{privateKey?}",
+                    defaults: new { controller = "Apps", action = "Index" });
+
+                //routes.MapRoute(
+                //    name: "default",
+                //    template: "{controller=Home}/{action=Index}/{id?}");
+
             });
         }
     }
