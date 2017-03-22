@@ -71,7 +71,7 @@ namespace TotalRecall.Controllers
             }
         }
 
-        [HttpPost]
+        [HttpPost,HttpGet]
         public IActionResult U(Guid publicKey, Guid privateKey)
         {
             try
@@ -96,15 +96,7 @@ namespace TotalRecall.Controllers
                         d.InsertDate = DateTime.Now;
                     }
 
-                    if (Request.Query.Count == 0 && Request.Form.Count == 0)
-                    {
-                        throw new Exception("No data found, must be a query string or x-www-form-urlencoded");
-                    }
-                    else if (Request.Query.Count > 0 && Request.Form.Count > 0)
-                    {
-                        throw new Exception("Either the query string or x-www-form-urlencoded data can be used but not both together");
-                    }
-                    else
+                    if (Request.Method == "GET")
                     {
                         foreach (var item in Request.Query)
                         {
@@ -118,7 +110,10 @@ namespace TotalRecall.Controllers
                                 d.DataItems.Add(di);
                             }
                         }
+                    }
 
+                    if (Request.Method == "POST")
+                    {
                         foreach (var item in Request.Form)
                         {
                             if (item.Key != "timestamp")
@@ -131,8 +126,8 @@ namespace TotalRecall.Controllers
                                 d.DataItems.Add(di);
                             }
                         }
-
                     }
+
                     a.Data.Add(d);
 
                     context.SaveChanges();
@@ -175,6 +170,21 @@ namespace TotalRecall.Controllers
             }
 
             return RedirectToAction("V", new { privateKey = model.PrivateKey, publicKey = model.PublicKey });
+        }
+
+        public IActionResult Browse()
+        {
+            ViewData["Title"] = "List of recent Applications";
+            using (var context = new Models.TRModelContext())
+            {
+                var apps = context.Applications
+                                  .Include(app=>app.Data)
+                                  .Where(q => q.HideFromSearch == false)
+                                  .OrderByDescending(o => o.InsertDate)
+                                  .Take(10)
+                                  .ToList();
+                return View(apps);
+            }
         }
     }
 }

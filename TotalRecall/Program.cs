@@ -14,6 +14,8 @@ namespace TotalRecall
         private static volatile bool exit = false;
         public static void Main(string[] args)
         {
+            Console.BufferWidth = Math.Max(Console.BufferWidth, 300);
+
             var host = new WebHostBuilder()
                 .UseKestrel()
                 .UseContentRoot(Directory.GetCurrentDirectory())
