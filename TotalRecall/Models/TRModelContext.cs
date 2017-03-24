@@ -8,20 +8,29 @@ namespace TotalRecall.Models
     public class TRModelContext : DbContext
     {
         public DbSet<Application> Applications { get; set; }
-        public DbSet<Data> Data { get; set; }
+        //public DbSet<Data> Data { get; set; }
         public DbSet<DataItem> DataItems { get; set; }
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
             base.OnConfiguring(optionsBuilder);
             optionsBuilder.UseSqlite("Data Source=my.db");
         }
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            base.OnModelCreating(modelBuilder);
+            modelBuilder.Entity<DataItem>().HasIndex(di => new { di.ApplicationId, di.PropertyName, di.InsertDate });
+            modelBuilder.Entity<DataItem>().HasIndex(di => new { di.ApplicationId, di.InsertDate });
+        }
+
     }
 
     public class Application
     {
         public Application()
         {
-            Data = new List<Data>();
+            DataItems = new List<DataItem>();
+            InsertDate = DateTime.Now;
         }
         public int ApplicationId { get; set; }
         [Required][Display(Name = "Application Name")]
@@ -30,27 +39,29 @@ namespace TotalRecall.Models
         public Guid PrivateKey { get; set; }
         public bool HideFromSearch { get; set; }
         public DateTime InsertDate { get; set; }
-        public List<Data> Data { get; set; }
-    }
-
-    public class Data
-    {
-        public Data()
-        {
-            DataItems = new List<DataItem>();
-        }
-        public int DataId { get; set; }
-        public int ApplicationId { get; set; }
-        public DateTime InsertDate { get; set; }
         public List<DataItem> DataItems { get; set; }
     }
+
+    //public class Data
+    //{
+    //    public Data()
+    //    {
+    //        DataItems = new List<DataItem>();
+    //    }
+    //    public int DataId { get; set; }
+    //    public int ApplicationId { get; set; }
+    //    public DateTime InsertDate { get; set; }
+    //    public List<DataItem> DataItems { get; set; }
+    //}
 
     public class DataItem
     {
         public int DataItemId { get; set; }
-        public int DataId { get; set; }
+        //public int DataId { get; set; }
+        public int ApplicationId { get; set; }
         public string PropertyName { get; set; }
         public string PropertyValue { get; set; }
+        public DateTime InsertDate { get; set; }
     }
 
 }

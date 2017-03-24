@@ -60,9 +60,9 @@ namespace TotalRecall.Controllers
             {
                 using (var context = new Models.TRModelContext())
                 {
-                    var a = context.Applications.Include(app => app.Data).ThenInclude(data => data.DataItems).Where(q => q.PublicKey == publicKey).ToList();
+                    var a = context.Applications.Include(app => app.DataItems).Where(q => q.PublicKey == publicKey).ToList();
                     if (a == null) throw new Exception("Application not found");
-                    return Json(a[0].Data);
+                    return Json(a[0].DataItems.GroupBy(g => g.InsertDate).Select(s => new { timestamp = s.Key, Items = s.SelectMany(l => new { property = l.PropertyName, value = l.PropertyValue }) });
                 }
             }
             catch (Exception e)
@@ -71,29 +71,25 @@ namespace TotalRecall.Controllers
             }
         }
 
-        [HttpPost,HttpGet]
+        [HttpPost, HttpGet]
         public IActionResult U(Guid publicKey, Guid privateKey)
         {
             try
             {
                 using (var context = new Models.TRModelContext())
                 {
-                    var d = new Models.Data();
+                    var insertDate = DateTime.Now;
                     var a = context.Applications.Where(q => q.PublicKey == publicKey && q.PrivateKey == privateKey).FirstOrDefault();
                     if (a == null)
                     {
                         throw new Exception("Application not found");
                     }
 
-                    if (Request.Query.ContainsKey("timestamp") && 
-                        int.TryParse(Request.Query["timestamp"][0], out int ts) && 
+                    if (Request.Query.ContainsKey("timestamp") &&
+                        int.TryParse(Request.Query["timestamp"][0], out int ts) &&
                         ts < (CurrentEpoch + 60000))
                     {
-                        d.InsertDate = new DateTime(1970, 1, 1).AddMilliseconds(ts);
-                    }
-                    else
-                    {
-                        d.InsertDate = DateTime.Now;
+                        insertDate = new DateTime(1970, 1, 1).AddMilliseconds(ts);
                     }
 
                     if (Request.Method == "GET")
@@ -105,9 +101,10 @@ namespace TotalRecall.Controllers
                                 var di = new DataItem()
                                 {
                                     PropertyName = item.Key,
-                                    PropertyValue = item.Value[0]
+                                    PropertyValue = item.Value[0],
+                                    InsertDate = insertDate
                                 };
-                                d.DataItems.Add(di);
+                                a.DataItems.Add(di);
                             }
                         }
                     }
@@ -123,13 +120,10 @@ namespace TotalRecall.Controllers
                                     PropertyName = item.Key,
                                     PropertyValue = item.Value[0]
                                 };
-                                d.DataItems.Add(di);
+                                a.DataItems.Add(di);
                             }
                         }
                     }
-
-                    a.Data.Add(d);
-
                     context.SaveChanges();
 
                 }
@@ -178,7 +172,7 @@ namespace TotalRecall.Controllers
             using (var context = new Models.TRModelContext())
             {
                 var apps = context.Applications
-                                  .Include(app=>app.Data)
+                                  .Include(app => app.DataItems)
                                   .Where(q => q.HideFromSearch == false)
                                   .OrderByDescending(o => o.InsertDate)
                                   .Take(10)
@@ -186,5 +180,51 @@ namespace TotalRecall.Controllers
                 return View(apps);
             }
         }
+
+        public IActionResult Test()
+        {
+
+            using (var context = new Models.TRModelContext())
+            {
+                var insertDate = DateTime.Now;
+                var a = new Application()
+                {
+                    PrivateKey = Guid.NewGuid(),
+                    PublicKey = Guid.NewGuid(),
+                    InsertDate = insertDate,
+                    HideFromSearch = false,
+                    Name = "Test"
+                };
+
+                a.DataItems.Add(new DataItem()
+                {
+                    PropertyName = "sensorName",
+                    PropertyValue = "nursery",
+                    InsertDate = insertDate
+                });
+
+                a.DataItems.Add(new DataItem()
+                {
+                    PropertyName = "temperature",
+                    PropertyValue = "17",
+                    InsertDate = insertDate
+                });
+
+                a.DataItems.Add(new DataItem()
+                {
+                    PropertyName = "humidity",
+                    PropertyValue = "58",
+                    InsertDate = insertDate
+                });
+
+                context.Applications.Add(a);
+                context.SaveChanges();
+
+                return View(a);
+            }
+
+            
+        }
+
     }
 }

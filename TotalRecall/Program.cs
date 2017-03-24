@@ -14,7 +14,7 @@ namespace TotalRecall
         private static volatile bool exit = false;
         public static void Main(string[] args)
         {
-            Console.BufferWidth = Math.Max(Console.BufferWidth, 300);
+            //Console.BufferWidth = Math.Max(Console.BufferWidth, 300);
 
             var host = new WebHostBuilder()
                 .UseKestrel()
@@ -48,7 +48,7 @@ namespace TotalRecall
                             if (exit) break;
 
                             var r = from a in context.Applications
-                                    join d in context.Data on a.ApplicationId equals d.ApplicationId
+                                    join d in context.DataItems on a.ApplicationId equals d.ApplicationId
                                     where d.InsertDate > DateTime.Now.AddDays(-30)
                                     select a;
 
