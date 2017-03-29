@@ -12,6 +12,7 @@ namespace TotalRecall.Controllers
     public class AppsController : Controller
     {
         public double CurrentEpoch => (DateTime.UtcNow - new DateTime(1970, 1, 1)).TotalMilliseconds;
+        public double GetEpoch(DateTime d) => (d - new DateTime(1970, 1, 1)).TotalMilliseconds; 
         [Route("Apps")]
         public IActionResult Index()
         {
@@ -61,8 +62,20 @@ namespace TotalRecall.Controllers
                 using (var context = new Models.TRModelContext())
                 {
                     var a = context.Applications.Include(app => app.Data).ThenInclude(data => data.DataItems).Where(q => q.PublicKey == publicKey).ToList();
+                    var x = new List<Dictionary<string,string>>();
+                    foreach (var data in a[0].Data)
+                    {
+                        var d = new Dictionary<string, string> { { "timestamp", String.Format("{0:yyyy-MM-dd}T{0:HH:mm:ss.fff}Z", data.InsertDate.ToUniversalTime()) } };
+
+                        foreach (var dataItem in data.DataItems)
+                        {
+                            d.Add(dataItem.PropertyName, dataItem.PropertyValue);
+                        }
+                        x.Add(d);
+                    }
                     if (a == null) throw new Exception("Application not found");
-                    return Json(a[0].Data);
+                    //return Json(a[0].Data);
+                    return Json(x);
                 }
             }
             catch (Exception e)
@@ -136,7 +149,6 @@ namespace TotalRecall.Controllers
             }
             catch (Exception e)
             {
-
                 return Json(new { success = false, message = e.Message });
             }
 

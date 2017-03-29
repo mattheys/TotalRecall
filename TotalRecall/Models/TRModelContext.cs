@@ -15,6 +15,13 @@ namespace TotalRecall.Models
             base.OnConfiguring(optionsBuilder);
             optionsBuilder.UseSqlite("Data Source=my.db");
         }
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            base.OnModelCreating(modelBuilder);
+            modelBuilder.Entity<DataItem>().
+                HasIndex(i => new { i.DataId, i.PropertyName }).
+                HasName("idxDataIdPropName");
+        }
     }
 
     public class Application

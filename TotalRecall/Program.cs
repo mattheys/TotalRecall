@@ -3,22 +3,30 @@ using System.IO;
 using System.Linq;
 using Microsoft.AspNetCore.Hosting;
 using System.Threading;
+using Microsoft.Extensions.Configuration;
 
 namespace TotalRecall
 {
     public class Program
     {
         public static string ProgramName = "Total Recall";
-        public static bool PubliclyAvailable = true;
+        public static bool PubliclyAvailable = false;
 
         private static volatile bool exit = false;
         public static void Main(string[] args)
         {
-            Console.BufferWidth = Math.Max(Console.BufferWidth, 300);
+
+            //Console.BufferWidth = Math.Max(Console.BufferWidth, 300);
+
+            var config = new ConfigurationBuilder()
+                .SetBasePath(Directory.GetCurrentDirectory())
+                .AddJsonFile("hosting.json", optional: true)
+                .Build();
 
             var host = new WebHostBuilder()
                 .UseKestrel()
                 .UseContentRoot(Directory.GetCurrentDirectory())
+                .UseConfiguration(config)
                 .UseIISIntegration()
                 .UseStartup<Startup>()
                 .UseApplicationInsights()
