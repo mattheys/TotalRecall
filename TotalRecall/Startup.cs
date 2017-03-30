@@ -46,6 +46,7 @@ namespace TotalRecall
         {
             loggerFactory.AddConsole(Configuration.GetSection("Logging"));
             loggerFactory.AddDebug();
+            
 
             if (env.IsDevelopment())
             {

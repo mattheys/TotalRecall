@@ -55,15 +55,25 @@ namespace TotalRecall.Controllers
             return View(model);
         }
 
+        [HttpGet][Route("Apps/json/{publicKey}")]
         public IActionResult json(Guid publicKey)
         {
             try
             {
                 using (var context = new Models.TRModelContext())
                 {
-                    var a = context.Applications.Include(app => app.Data).ThenInclude(data => data.DataItems).Where(q => q.PublicKey == publicKey).ToList();
+                    //var a = context.Applications.Include(app => app.Data).ThenInclude(data => data.DataItems).Where(q => q.PublicKey == publicKey).ToList();
+                    
+                    var b = context.Applications.Include(app => app.Data).ThenInclude(data => data.DataItems).Where(q => q.PublicKey == publicKey);
+
+                    foreach (var item in Request.Query)
+                    {
+                        b = b.Where(q => q.PrivateKey == Guid.NewGuid()); //q.Data.Any(r => r.DataItems.Any(s => s.PropertyName.Equals(item.Key) && s.PropertyValue.Equals(item.Value[0]))));
+                    }
+                    
                     var x = new List<Dictionary<string,string>>();
-                    foreach (var data in a[0].Data)
+
+                    foreach (var data in b.ToList()[0].Data)
                     {
                         var d = new Dictionary<string, string> { { "timestamp", String.Format("{0:yyyy-MM-dd}T{0:HH:mm:ss.fff}Z", data.InsertDate.ToUniversalTime()) } };
 
@@ -73,7 +83,7 @@ namespace TotalRecall.Controllers
                         }
                         x.Add(d);
                     }
-                    if (a == null) throw new Exception("Application not found");
+                    if (b == null) throw new Exception("Application not found");
                     //return Json(a[0].Data);
                     return Json(x);
                 }
