@@ -99,7 +99,7 @@ namespace TotalRecall.Controllers
                     }
 
                     if (Request.Query.ContainsKey("timestamp") && 
-                        int.TryParse(Request.Query["timestamp"][0], out int ts) && 
+                        long.TryParse(Request.Query["timestamp"][0], out long ts) && 
                         ts < (CurrentEpoch + 60000))
                     {
                         d.InsertDate = new DateTime(1970, 1, 1).AddMilliseconds(ts);
