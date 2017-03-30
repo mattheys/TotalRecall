@@ -5,6 +5,8 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using TotalRecall.Models;
 using Microsoft.EntityFrameworkCore;
+using System.Data;
+using System.Text;
 // For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
 namespace TotalRecall.Controllers
@@ -62,31 +64,60 @@ namespace TotalRecall.Controllers
             {
                 using (var context = new Models.TRModelContext())
                 {
-                    //var a = context.Applications.Include(app => app.Data).ThenInclude(data => data.DataItems).Where(q => q.PublicKey == publicKey).ToList();
-                    
-                    var b = context.Applications.Include(app => app.Data).ThenInclude(data => data.DataItems).Where(q => q.PublicKey == publicKey);
+                    //context.Database.ExecuteSqlCommand("SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;");
+                    var appList = context.Applications.Include(app => app.Data).ThenInclude(data => data.DataItems).Where(q => q.PublicKey == publicKey);
+                    String s = "[";
+                    var buffer = UTF8Encoding.UTF8.GetBytes(s);
+                    Response.Body.WriteAsync(buffer, 0, buffer.Length);
 
-                    foreach (var item in Request.Query)
+                    for (int i = 0; i < appList.FirstOrDefault().Data.Count; i++)
                     {
-                        b = b.Where(q => q.PrivateKey == Guid.NewGuid()); //q.Data.Any(r => r.DataItems.Any(s => s.PropertyName.Equals(item.Key) && s.PropertyValue.Equals(item.Value[0]))));
-                    }
-                    
-                    var x = new List<Dictionary<string,string>>();
+                        s = "{";
 
-                    foreach (var data in b.ToList()[0].Data)
-                    {
-                        var d = new Dictionary<string, string> { { "timestamp", String.Format("{0:yyyy-MM-dd}T{0:HH:mm:ss.fff}Z", data.InsertDate.ToUniversalTime()) } };
-
-                        foreach (var dataItem in data.DataItems)
+                        foreach (var item in appList.FirstOrDefault().Data[i].DataItems)
                         {
-                            d.Add(dataItem.PropertyName, dataItem.PropertyValue);
+                            s += $"\"{item.PropertyName}\",\"{item.PropertyValue}\",";
                         }
-                        x.Add(d);
+
+                        s.Remove(s.Length - 1, 1);
+                        s += "}";
+
+                        if (i < appList.FirstOrDefault().Data.Count - 1)
+                        {
+                            s += ",";
+                        }
+
+                        buffer = UTF8Encoding.UTF8.GetBytes(s);
+                        Response.Body.WriteAsync(buffer, 0, buffer.Length);
+
                     }
-                    if (b == null) throw new Exception("Application not found");
-                    //return Json(a[0].Data);
-                    return Json(x);
+
                 }
+                //    var b = context.Applications.Include(app => app.Data).ThenInclude(data => data.DataItems).Where(q => q.PublicKey == publicKey);
+
+                //    foreach (var item in Request.Query)
+                //    {
+                //        b = b.Where(q => q.PrivateKey == Guid.NewGuid()); //q.Data.Any(r => r.DataItems.Any(s => s.PropertyName.Equals(item.Key) && s.PropertyValue.Equals(item.Value[0]))));
+                //    }
+
+                // var x = new List<Dictionary<string, string>>();
+
+                //foreach (var data in appList[0].Data)
+                //{
+
+                //var d = new Dictionary<string, string> { { "timestamp", String.Format("{0:yyyy-MM-dd}T{0:HH:mm:ss.fff}Z", data.InsertDate.ToUniversalTime()) } };
+
+                //foreach (var dataItem in data.DataItems)
+                //{
+                //    d.Add(dataItem.PropertyName, dataItem.PropertyValue);
+                //}
+                //x.Add(d);
+                //}
+                //sb.Append("]");
+                //if (b == null) throw new Exception("Application not found");
+                //return Json(a[0].Data);
+                return View();//Json(x);
+
             }
             catch (Exception e)
             {
