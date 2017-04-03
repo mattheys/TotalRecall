@@ -1,4 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -21,6 +24,9 @@ namespace TotalRecall.Models
             modelBuilder.Entity<DataItem>().
                 HasIndex(i => new { i.DataId, i.PropertyName }).
                 HasName("idxDataIdPropName");
+            modelBuilder.Entity<Data>().
+                HasIndex(i => new { i.ApplicationId, i.InsertDate }).
+                HasName("idx_Data_AppId_InsertDate");
         }
     }
 
