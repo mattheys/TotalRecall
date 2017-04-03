@@ -32,6 +32,10 @@ namespace TotalRecall
                 .UseApplicationInsights()
                 .Build();
 
+
+            System.Diagnostics.Debug.WriteLine(Directory.GetCurrentDirectory());
+            System.IO.Directory.CreateDirectory("dbs");
+
             //Console.Write("Setting up database - ");
             //using (var context = new Models.TRModelContext())
             //{
