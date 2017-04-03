@@ -7,13 +7,18 @@ namespace TotalRecall.Models
 {
     public class TRModelContext : DbContext
     {
+        public Guid PublicKey { get; set; }
+        public TRModelContext(Guid publicKey)
+        {
+            PublicKey = publicKey;
+        }
         public DbSet<Application> Applications { get; set; }
         public DbSet<Data> Data { get; set; }
         public DbSet<DataItem> DataItems { get; set; }
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
             base.OnConfiguring(optionsBuilder);
-            optionsBuilder.UseSqlite("Data Source=my.db");
+            optionsBuilder.UseSqlite($"Data Source=dbs\\{PublicKey.ToString()}.db");
         }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

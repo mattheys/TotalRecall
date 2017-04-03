@@ -18,11 +18,12 @@ namespace TotalRecall.Controllers
         [Route("Apps")]
         public IActionResult Index()
         {
-            using (var context = new TRModelContext())
-            {
-                var apps = context.Applications.Where(q => q.HideFromSearch == false).ToList();
-                return View(apps);
-            }
+            //using (var context = new TRModelContext())
+            //{
+            //    var apps = context.Applications.Where(q => q.HideFromSearch == false).ToList();
+            //    return View(apps);
+            //}
+            return View();
         }
 
         [Route("Apps/V/{publicKey}")]
@@ -38,7 +39,7 @@ namespace TotalRecall.Controllers
         {
             if (publicKey != null && privateKey != null)
             {
-                using (var context = new TRModelContext())
+                using (var context = new TRModelContext(publicKey))
                 {
                     var model = context.Applications.Where(q => q.PublicKey == publicKey && q.PrivateKey == privateKey).FirstOrDefault();
                     if (model != null)
@@ -64,7 +65,7 @@ namespace TotalRecall.Controllers
 
             try
             {
-                using (var context = new TRModelContext())
+                using (var context = new TRModelContext(publicKey))
                 {
 
                     var app = context.Applications.Where(q => q.PublicKey == publicKey).FirstOrDefault();
@@ -137,7 +138,7 @@ namespace TotalRecall.Controllers
         {
             try
             {
-                using (var context = new Models.TRModelContext())
+                using (var context = new Models.TRModelContext(publicKey))
                 {
                     var d = new Models.Data();
                     var a = context.Applications.Where(q => q.PublicKey == publicKey && q.PrivateKey == privateKey).FirstOrDefault();
@@ -223,8 +224,9 @@ namespace TotalRecall.Controllers
             model.PrivateKey = Guid.NewGuid();
             model.PublicKey = Guid.NewGuid();
 
-            using (var context = new TRModelContext())
+            using (var context = new TRModelContext(model.PublicKey))
             {
+                context.Database.EnsureCreated();
                 context.Applications.Add(model);
                 context.SaveChanges();
             }
@@ -234,18 +236,19 @@ namespace TotalRecall.Controllers
 
         public IActionResult Browse()
         {
-            ViewData["Title"] = "List of recent Applications";
-            using (var context = new Models.TRModelContext())
-            {
+            //ViewData["Title"] = "List of recent Applications";
+            //using (var context = new Models.TRModelContext())
+            //{
 
-                var apps = context.Applications
-                                  //.Include(app=>app.Data)
-                                  .Where(q => q.HideFromSearch == false)
-                                  .OrderByDescending(o => o.InsertDate)
-                                  .Take(10)
-                                  .ToList();
-                return View(apps);
-            }
+            //    var apps = context.Applications
+            //                      //.Include(app=>app.Data)
+            //                      .Where(q => q.HideFromSearch == false)
+            //                      .OrderByDescending(o => o.InsertDate)
+            //                      .Take(10)
+            //                      .ToList();
+            //    return View(apps);
+            //}
+            return View();
         }
     }
 }

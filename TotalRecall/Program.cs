@@ -32,52 +32,52 @@ namespace TotalRecall
                 .UseApplicationInsights()
                 .Build();
 
-            Console.Write("Setting up database - ");
-            using (var context = new Models.TRModelContext())
-            {
-                context.Database.EnsureCreated();
-            }
-            Console.WriteLine("complete");
+            //Console.Write("Setting up database - ");
+            //using (var context = new Models.TRModelContext())
+            //{
+            //    context.Database.EnsureCreated();
+            //}
+            //Console.WriteLine("complete");
 
-            if (PubliclyAvailable)
-            {
-                new Thread(() =>
-                {
-                    using (var context = new Models.TRModelContext())
-                    {
-                        while (!exit)
-                        {
-                            DateTime dt = DateTime.Today.AddHours(2);
-                            if (dt < DateTime.Now) dt = dt.AddDays(1);
-                            while (DateTime.Now > dt || !exit)
-                            {
-                                Thread.Sleep(1000);
-                            }
-                            if (exit) break;
+            //if (PubliclyAvailable)
+            //{
+            //    new Thread(() =>
+            //    {
+            //        using (var context = new Models.TRModelContext())
+            //        {
+            //            while (!exit)
+            //            {
+            //                DateTime dt = DateTime.Today.AddHours(2);
+            //                if (dt < DateTime.Now) dt = dt.AddDays(1);
+            //                while (DateTime.Now > dt || !exit)
+            //                {
+            //                    Thread.Sleep(1000);
+            //                }
+            //                if (exit) break;
 
-                            var r = from a in context.Applications
-                                    join d in context.Data on a.ApplicationId equals d.ApplicationId
-                                    where d.InsertDate > DateTime.Now.AddDays(-30)
-                                    select a;
+            //                var r = from a in context.Applications
+            //                        join d in context.Data on a.ApplicationId equals d.ApplicationId
+            //                        where d.InsertDate > DateTime.Now.AddDays(-30)
+            //                        select a;
 
-                            context.Applications.RemoveRange(context.Applications.Except(r));
-                            context.SaveChanges();
-                        }
-                    }
-                }).Start();
-                new Thread(() =>
-                {
-                    using (var context = new Models.TRModelContext())
-                    {
-                        while (!exit)
-                        {
-                            //TODO: Something to clear up more than 100,000 entries per app
-                            Thread.Sleep(1000);
-                        }
-                    }
+            //                context.Applications.RemoveRange(context.Applications.Except(r));
+            //                context.SaveChanges();
+            //            }
+            //        }
+            //    }).Start();
+            //    new Thread(() =>
+            //    {
+            //        using (var context = new Models.TRModelContext())
+            //        {
+            //            while (!exit)
+            //            {
+            //                //TODO: Something to clear up more than 100,000 entries per app
+            //                Thread.Sleep(1000);
+            //            }
+            //        }
 
-                }).Start();
-            }
+            //    }).Start();
+            //}
             host.Run();
             exit = true;
         }
