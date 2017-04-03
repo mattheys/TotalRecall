@@ -1,13 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
+
 using Microsoft.AspNetCore.Mvc;
 using TotalRecall.Models;
 using Microsoft.EntityFrameworkCore;
-using System.Data;
-using System.Text;
-using System.Diagnostics;
+
 // For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
 namespace TotalRecall.Controllers
@@ -60,7 +58,7 @@ namespace TotalRecall.Controllers
         }
 
         [HttpGet][Route("Apps/json/{publicKey}")]
-        public IActionResult json(Guid publicKey)
+        public IActionResult Json(Guid publicKey)
         {
             var returnValue = new List<Dictionary<string, string>>();
 
@@ -68,6 +66,7 @@ namespace TotalRecall.Controllers
             {
                 using (var context = new TRModelContext())
                 {
+
                     var app = context.Applications.Where(q => q.PublicKey == publicKey).FirstOrDefault();
 
                     if (app == null)
@@ -94,7 +93,6 @@ namespace TotalRecall.Controllers
                             {
                                 data = data.Where(q => q.InsertDate < FromEpoch(dt));
                             }
-
                         }
                     }
 
