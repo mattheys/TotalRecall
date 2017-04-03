@@ -7,6 +7,7 @@ using TotalRecall.Models;
 using Microsoft.EntityFrameworkCore;
 using System.Data;
 using System.Text;
+using System.Diagnostics;
 // For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
 namespace TotalRecall.Controllers
@@ -14,7 +15,8 @@ namespace TotalRecall.Controllers
     public class AppsController : Controller
     {
         public double CurrentEpoch => (DateTime.UtcNow - new DateTime(1970, 1, 1)).TotalMilliseconds;
-        public double GetEpoch(DateTime d) => (d - new DateTime(1970, 1, 1)).TotalMilliseconds; 
+        public double GetEpoch(DateTime d) => (d - new DateTime(1970, 1, 1)).TotalMilliseconds;
+        public DateTime FromEpoch(double d) => new DateTime(1970, 1, 1).AddMilliseconds(d);
         [Route("Apps")]
         public IActionResult Index()
         {
@@ -60,63 +62,70 @@ namespace TotalRecall.Controllers
         [HttpGet][Route("Apps/json/{publicKey}")]
         public IActionResult json(Guid publicKey)
         {
+            var returnValue = new List<Dictionary<string, string>>();
+
             try
             {
-                using (var context = new Models.TRModelContext())
+                using (var context = new TRModelContext())
                 {
-                    //context.Database.ExecuteSqlCommand("SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;");
-                    var appList = context.Applications.Include(app => app.Data).ThenInclude(data => data.DataItems).Where(q => q.PublicKey == publicKey);
-                    String s = "[";
-                    var buffer = UTF8Encoding.UTF8.GetBytes(s);
-                    Response.Body.WriteAsync(buffer, 0, buffer.Length);
+                    var app = context.Applications.Where(q => q.PublicKey == publicKey).FirstOrDefault();
 
-                    for (int i = 0; i < appList.FirstOrDefault().Data.Count; i++)
+                    if (app == null)
                     {
-                        s = "{";
+                        return Json(new { success = false, message = "No app found" });
+                    }
 
-                        foreach (var item in appList.FirstOrDefault().Data[i].DataItems)
+                    var data = context.Data.Where(q => q.ApplicationId == app.ApplicationId);
+
+                    foreach (var v in Request.Query["timestamp"])
+                    {
+                        if (v.StartsWith("gt"))
                         {
-                            s += $"\"{item.PropertyName}\",\"{item.PropertyValue}\",";
+                            string t = v.Replace("gt", "");
+                            if (double.TryParse(t, out double dt))
+                            {
+                                data = data.Where(q => q.InsertDate > FromEpoch(dt));
+                            }
+                        }
+                        else if (v.StartsWith("lt"))
+                        {
+                            string t = v.Replace("lt", "");
+                            if (double.TryParse(t, out double dt))
+                            {
+                                data = data.Where(q => q.InsertDate < FromEpoch(dt));
+                            }
+
+                        }
+                    }
+
+                    foreach (var item in Request.Query)
+                    {
+                        if (item.Key == "timestamp")
+                        {
+                            continue;                            
                         }
 
-                        s.Remove(s.Length - 1, 1);
-                        s += "}";
-
-                        if (i < appList.FirstOrDefault().Data.Count - 1)
+                        foreach (var v in item.Value)
                         {
-                            s += ",";
+                            data = data.Where(q => q.DataItems.Any(r => r.PropertyName == item.Key && r.PropertyValue == v));
                         }
+                    }
 
-                        buffer = UTF8Encoding.UTF8.GetBytes(s);
-                        Response.Body.WriteAsync(buffer, 0, buffer.Length);
+                    var listData = data.Include(d=>d.DataItems).OrderByDescending(o => o.InsertDate).Take(2880).ToList();
 
+                    foreach (var item in listData)
+                    {
+                        var d = new Dictionary<string, string> { { "timestamp", String.Format("{0:yyyy-MM-dd}T{0:HH:mm:ss.fff}Z", item.InsertDate.ToUniversalTime()) } };
+                        foreach (var di in item.DataItems)
+                        {
+                            d.Add(di.PropertyName, di.PropertyValue);
+                        }
+                        returnValue.Add(d);
                     }
 
                 }
-                //    var b = context.Applications.Include(app => app.Data).ThenInclude(data => data.DataItems).Where(q => q.PublicKey == publicKey);
-
-                //    foreach (var item in Request.Query)
-                //    {
-                //        b = b.Where(q => q.PrivateKey == Guid.NewGuid()); //q.Data.Any(r => r.DataItems.Any(s => s.PropertyName.Equals(item.Key) && s.PropertyValue.Equals(item.Value[0]))));
-                //    }
-
-                // var x = new List<Dictionary<string, string>>();
-
-                //foreach (var data in appList[0].Data)
-                //{
-
-                //var d = new Dictionary<string, string> { { "timestamp", String.Format("{0:yyyy-MM-dd}T{0:HH:mm:ss.fff}Z", data.InsertDate.ToUniversalTime()) } };
-
-                //foreach (var dataItem in data.DataItems)
-                //{
-                //    d.Add(dataItem.PropertyName, dataItem.PropertyValue);
-                //}
-                //x.Add(d);
-                //}
-                //sb.Append("]");
-                //if (b == null) throw new Exception("Application not found");
-                //return Json(a[0].Data);
-                return View();//Json(x);
+           
+                return Json(returnValue);
 
             }
             catch (Exception e)
@@ -230,8 +239,9 @@ namespace TotalRecall.Controllers
             ViewData["Title"] = "List of recent Applications";
             using (var context = new Models.TRModelContext())
             {
+
                 var apps = context.Applications
-                                  .Include(app=>app.Data)
+                                  //.Include(app=>app.Data)
                                   .Where(q => q.HideFromSearch == false)
                                   .OrderByDescending(o => o.InsertDate)
                                   .Take(10)
