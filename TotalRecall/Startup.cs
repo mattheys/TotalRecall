@@ -70,7 +70,7 @@ namespace TotalRecall
 
                 routes.MapRoute(
                     name: "default",
-                    template: "{controller=Home}/{action=Index}");
+                    template: "{controller=Apps}/{action=Index}");
 
             });
         }
