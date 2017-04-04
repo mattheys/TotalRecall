@@ -1,21 +1,28 @@
 ﻿@model List<TotalRecall.Models.TRApplication>
+<style>
+    .table td a {
+        text-decoration:none;
+        color:inherit;
+        display: block;
+    }
+</style>
 <table class="table table-striped table-responsive">
     <thead>
         <tr>
             <th>Name</th>
             <th>Description</th>
             <th>Public Key</th>
-            <th>Created Date</th>
+            <th>Last Updated</th>
         </tr>
     </thead>
     <tbody>
         @foreach (var item in Model)
         {
             <tr>
-                <td>@item.Name</td>
-                <td>@item.Description</td>
-                <td>@item.PublicKey</td>
-                <td>@item.LastUpdated</td>
+                <td>@Html.ActionLink(item.Name, "View", new {item.PublicKey})</td>
+                <td>@Html.ActionLink(item.Description, "View", new { item.PublicKey })</td>
+                <td>@Html.ActionLink(item.PublicKey.ToString(), "View", new { item.PublicKey })</td>
+                <td>@Html.ActionLink(item.LastUpdated.ToString(), "View", new { item.PublicKey })</td>
             </tr>
         }
     </tbody>
