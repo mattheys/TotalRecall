@@ -18,7 +18,7 @@ namespace TotalRecall.Models
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
             base.OnConfiguring(optionsBuilder);
-            optionsBuilder.UseSqlite($"Data Source=dbs\\{PublicKey.ToString()}.db");
+            optionsBuilder.UseSqlite($"Data Source=dbs{System.IO.Path.DirectorySeparatorChar}{PublicKey.ToString()}.db");
         }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
