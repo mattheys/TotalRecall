@@ -12,19 +12,16 @@ namespace TotalRecall
         public static string ProgramName = "Total Recall";
         public static bool PubliclyAvailable = false;
 
-        private static volatile bool exit = false;
         public static void Main(string[] args)
         {
             if (!File.Exists("hosting.json"))
             {
                 Console.WriteLine("The file \"hosting.json\" is missing\r\n" +
-                                  "This file is not automatically created and is optional,\r\n" +
-                                  "however you can add additional configuration options like\r\n" +
-                                  "specifying the binding urls." +
+                                  "This file is not automatically created and is optional, however you can add additional configuration options like specifying the binding urls.\r\n" +
                                   "\r\n" +
                                   "{\r\n" +
                                   "  \"server.urls\": \"http://0.0.0.0:8000\"\r\n" +
-                                  "}");
+                                  "}\r\n");
             }
 
             var config = new ConfigurationBuilder()
@@ -49,7 +46,6 @@ namespace TotalRecall
             Directory.CreateDirectory("dbs");
 
             host.Run();
-            exit = true;
         }
     }
 }
