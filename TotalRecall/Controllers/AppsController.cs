@@ -92,7 +92,7 @@ namespace TotalRecall.Controllers
                 }
             }
 
-            return RedirectToAction("Index", "Home");
+            return RedirectToAction("Index", "Apps");
 
         }
 
