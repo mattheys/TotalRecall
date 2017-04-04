@@ -17,7 +17,6 @@ namespace TotalRecall.Controllers
         public DateTime FromEpoch(double d) => new DateTime(1970, 1, 1).AddMilliseconds(d);
 
 
-        [Route("Apps")]
         public IActionResult Index()
         {
             return View();
@@ -49,7 +48,13 @@ namespace TotalRecall.Controllers
                 context.Database.EnsureCreated();
             }
 
-            return RedirectToAction("V", new { adminKey = model.AdminKey, publicKey = model.PublicKey });
+            return RedirectToAction("Admin", new { adminKey = model.AdminKey });
+        }
+
+        public IActionResult New()
+        {
+            ViewData["Title"] = "New application";
+            return View();
         }
 
         [Route("Apps/Browse")]
@@ -64,22 +69,22 @@ namespace TotalRecall.Controllers
             return View(apps);
         }
 
-        [Route("Apps/V/{publicKey}")]
-        public IActionResult V(Guid publicKey)
-        {
-            Dictionary<string, Guid> model = new Dictionary<string, Guid>();
-            if (publicKey != null) model["publicKey"] = publicKey;
-            return View(model);
-        }
+        //[Route("Apps/V/{publicKey}")]
+        //public IActionResult V(Guid publicKey)
+        //{
+        //    Dictionary<string, Guid> model = new Dictionary<string, Guid>();
+        //    if (publicKey != null) model["publicKey"] = publicKey;
+        //    return View(model);
+        //}
 
-        [Route("Apps/V/{publicKey}/{adminKey}")]
-        public IActionResult V(Guid publicKey, Guid adminKey)
+        [Route("Apps/Admin/{adminKey}")]
+        public IActionResult Admin(Guid adminKey)
         {
-            if (publicKey != null && adminKey != null)
+            if (adminKey != null)
             {
                 using (var context = new TRContext())
                 {
-                    var model = context.Applications.Where(q => q.PublicKey == publicKey && q.AdminKey == adminKey).FirstOrDefault();
+                    var model = context.Applications.Where(q => q.AdminKey == adminKey).FirstOrDefault();
                     if (model != null)
                     {
                         return View(model);
@@ -91,12 +96,12 @@ namespace TotalRecall.Controllers
 
         }
 
-        public IActionResult V(TRApplication model)
-        {
-            return View(model);
-        }
+        //public IActionResult V(TRApplication model)
+        //{
+        //    return View(model);
+        //}
 
-        [HttpGet][Route("Apps/json/{publicKey}")]
+        [HttpGet] [Route("Apps/json/{publicKey}")]
         public IActionResult Json(Guid publicKey)
         {
             Response.Headers.Add("Access-Control-Allow-Origin", "*");
@@ -107,7 +112,7 @@ namespace TotalRecall.Controllers
 
             try
             {
-                using(var trContext = new TRContext())
+                using (var trContext = new TRContext())
                 {
                     trApp = trContext.Applications.Where(q => q.PublicKey == publicKey).FirstOrDefault();
                     if (trApp == null)
@@ -145,7 +150,7 @@ namespace TotalRecall.Controllers
                     {
                         if (item.Key == "timestamp")
                         {
-                            continue;                            
+                            continue;
                         }
 
                         foreach (var v in item.Value)
@@ -154,7 +159,7 @@ namespace TotalRecall.Controllers
                         }
                     }
 
-                    var listData = data.Include(d=>d.DataItems).OrderByDescending(o => o.InsertDate).Take(2880).ToList();
+                    var listData = data.Include(d => d.DataItems).OrderByDescending(o => o.InsertDate).Take(2880).ToList();
 
                     foreach (var item in listData)
                     {
@@ -167,7 +172,7 @@ namespace TotalRecall.Controllers
                     }
 
                 }
-           
+
                 return Json(returnValue);
 
             }
@@ -177,22 +182,19 @@ namespace TotalRecall.Controllers
             }
         }
 
-        [HttpPost,HttpGet]
-        [Route("Apps/U/{publicKey}/{updateKey}")]
-        public IActionResult U(Guid publicKey, Guid updateKey)
+        [HttpPost, HttpGet]
+        [Route("Apps/Update/{updateKey}")]
+        public IActionResult Update(Guid updateKey)
         {
             try
             {
+                TRApplication trApp = null;
                 using (var trContext = new TRContext())
                 {
-                    var trApp = trContext.Applications.Where(q => q.PublicKey == publicKey && q.UpdateKey == updateKey).FirstOrDefault();
-                    if (trApp == null)
-                    {
-                        return Json(new { success = false, message = "No such app." });
-                    }
+                    trApp = trContext.Applications.Where(q => q.UpdateKey == updateKey).FirstOrDefault() ?? throw new Exception("No such app");
                 }
 
-                using (var context = new ApplicationContext(publicKey))
+                using (var context = new ApplicationContext(trApp.PublicKey))
                 {
                     var d = new Data();
 
@@ -244,6 +246,12 @@ namespace TotalRecall.Controllers
                     context.SaveChanges();
 
                 }
+
+                using (var trContext = new TRContext())
+                {
+                    trContext.Applications.Where(q => q.UpdateKey == updateKey).FirstOrDefault().LastUpdated = DateTime.Now;
+                    trContext.SaveChanges();
+                }
             }
             catch (Exception e)
             {
@@ -253,12 +261,27 @@ namespace TotalRecall.Controllers
             return Json(true);
         }
 
-        public IActionResult New()
+        [Route("Apps/View/{publicKey}")]
+        public IActionResult View(Guid publicKey)
         {
-            ViewData["Title"] = "New application";
-            return View();
-        }
+            TRApplication trApp = null;
 
-        
+            try
+            {
+
+                using (var trContext = new TRContext())
+                {
+                    trApp = trContext.Applications.Where(q => q.PublicKey == publicKey).FirstOrDefault() ?? throw new Exception("App not found");
+                }
+
+            }
+            catch (Exception e)
+            {
+
+                throw;
+            }
+
+            return View(trApp);
+        }
     }
 }
