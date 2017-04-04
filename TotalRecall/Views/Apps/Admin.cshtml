@@ -1,0 +1,66 @@
+﻿@using Microsoft.AspNetCore.Mvc.TagHelpers
+@model TotalRecall.Models.TRApplication
+
+@{
+    var keys = new { PublicKey = Model.PublicKey, UpdateKey = Model.UpdateKey, AdminKey = Model.AdminKey };
+}
+
+<div class="row">
+    <div class="col-xs-12 col-sm-6">
+        <div class="form-group">
+            <label asp-for="Name"></label>
+            <input readonly asp-for="Name" class="form-control" />
+        </div>
+
+        <div class="form-group">
+            <label asp-for="Description"></label>
+            <input readonly asp-for="Description" class="form-control" />
+        </div>
+
+        <div class="form-group">
+            <label asp-for="Email"></label>
+            <input readonly asp-for="Email" class="form-control" />
+        </div>
+
+        <div class="form-group">
+            <label asp-for="PublicKey"></label>
+            <input readonly asp-for="PublicKey" class="form-control" />
+        </div>
+
+        <div class="form-group">
+            <label asp-for="UpdateKey"></label>
+            <input readonly asp-for="UpdateKey" class="form-control" />
+        </div>
+
+        <div class="form-group">
+            <label asp-for="AdminKey"></label>
+            <input readonly asp-for="AdminKey" class="form-control" />
+        </div>
+
+        <div class="form-group">
+            <label>Keys Json</label>
+            <pre>@(Json.Serialize(keys, new Newtonsoft.Json.JsonSerializerSettings { Formatting = Newtonsoft.Json.Formatting.Indented }))</pre>
+        </div>
+
+        <div class="checkbox">
+            <label asp-for="Public">
+                <input disabled asp-for="Public" />
+                @Html.DisplayNameFor(m => m.Public)
+            </label>
+        </div>
+    </div>
+    <div class="col-xs-12 col-sm-6">
+        <h1>Congratulations . . .</h1>
+        <p class="lead">. . . on creating your TR Database</p>
+        <h2>Examples</h2>
+        <pre>Update data
+/Apps/Update/{UpdateKey}?Key=Value&Key2=Value2
+
+By default a timestamp of the current date and time is added, you can override this by using timestamp as a key value pair, timestamp is the Unix Epoch in milliseconds, you can only override times in the past, not the future</pre>
+        <pre>Getting data back
+/Apps/Json/{PublicKey}
+/Apps/Json/{PublicKey}?timestamp=gt{milliseconds}
+/Apps/Json/{PublicKey}?Key=Value&Key2=Value2
+You can get your data back is Json format and filter it on a Key Value pair or multiple Key Value pairs, they work as an AND query, timestamp is special as it support gt and lt before the timestamp for entries before or after a timestamp</pre>
+    </div>
+</div>
