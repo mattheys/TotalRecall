@@ -61,6 +61,8 @@ namespace TotalRecall.Controllers
         [HttpGet][Route("Apps/json/{publicKey}")]
         public IActionResult Json(Guid publicKey)
         {
+            Response.Headers.Add("Access-Control-Allow-Origin", "*");
+
             var returnValue = new List<Dictionary<string, string>>();
 
             try
