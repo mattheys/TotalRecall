@@ -65,7 +65,7 @@ namespace TotalRecall
             {
                 routes.MapRoute(
                     name: "Apps",
-                    template: "Apps/{action}/{publicKey?}/{privateKey?}",
+                    template: "Apps/{action}/{publicKey?}/{updateKey?}",
                     defaults: new { controller = "Apps", action = "Index" });
 
                 routes.MapRoute(

@@ -1,4 +1,6 @@
-﻿@model TotalRecall.Models.Application
+﻿@using Microsoft.AspNetCore.Mvc.TagHelpers
+
+@model TotalRecall.Models.TRApplication
 <div class="row">
     <form asp-controller="Apps" asp-action="New" method="post" >
         @Html.AntiForgeryToken()
@@ -10,9 +12,21 @@
             <p asp-validation-for="Name" class="text-danger"></p>
         </div>
 
+        <div class="form-group">
+            <label asp-for="Description"></label>
+            <input asp-for="Description" class="form-control" />
+            <p asp-validation-for="Description" class="text-danger"></p>
+        </div>
+
+        <div class="form-group">
+            <label asp-for="Email"></label>
+            <input asp-for="Email" class="form-control" />
+            <p asp-validation-for="Email" class="text-danger"></p>
+        </div>
+
         <div class="checkbox">
-            <label asp-for="HideFromSearch">
-                <input asp-for="HideFromSearch" /> 
+            <label asp-for="Public">
+                <input asp-for="Public" /> 
                 Hide From Search
             </label>
         </div>
