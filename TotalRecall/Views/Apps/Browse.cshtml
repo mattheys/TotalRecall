@@ -19,10 +19,10 @@
         @foreach (var item in Model)
         {
             <tr>
-                <td>@Html.ActionLink(item.Name, "View", new {item.PublicKey})</td>
-                <td>@Html.ActionLink(item.Description, "View", new { item.PublicKey })</td>
-                <td>@Html.ActionLink(item.PublicKey.ToString(), "View", new { item.PublicKey })</td>
-                <td>@Html.ActionLink(item.LastUpdated.ToString(), "View", new { item.PublicKey })</td>
+                <td><a asp-action="View" asp-route-PublicKey="@item.PublicKey">@item.Name</a></td>
+                <td><a asp-action="View" asp-route-PublicKey="@item.PublicKey">@item.Description</a></td>
+                <td><a asp-action="View" asp-route-PublicKey="@item.PublicKey">@item.PublicKey.ToString()</a></td>
+                <td><a asp-action="View" asp-route-PublicKey="@item.PublicKey">@item.LastUpdated.ToString()</a></td>
             </tr>
         }
     </tbody>
