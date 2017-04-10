@@ -38,7 +38,7 @@
 
         <div class="form-group">
             <label>Keys Json</label>
-            <pre>@(Json.Serialize(keys, new Newtonsoft.Json.JsonSerializerSettings { Formatting = Newtonsoft.Json.Formatting.Indented }))</pre>
+            <pre>@(Json.Serialize(keys, new JsonSerializerSettings { Formatting = Formatting.Indented }))</pre>
         </div>
 
         <div class="checkbox">
