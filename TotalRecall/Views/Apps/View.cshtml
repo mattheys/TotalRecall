@@ -1,7 +1,23 @@
-﻿@model TotalRecall.Models.TRApplication
-@*
-    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
-*@
-@{
+﻿@model TRApplication
+
+<div class="row">
+    <div class="col-xs-12">
+        <h1>@Model.Name</h1>
+        <h3>@Model.Description</h3>
+        <pre id="jsonString">Loading . . .</pre>
+    </div>
+</div>
+@section Scripts{
+    <script>
+        var requestUrl = '@Url.Action("Json", new { PublicKey = Model.PublicKey })';
+        $(document).ready(function () {
+            $.ajax({
+                type: 'GET',
+                url: requestUrl,
+                data: {limit:100}
+            }).done(function (data) { 
+                $('#jsonString').text(JSON.stringify(data,null,'  '));
+            });
+        });
+    </script>
 }
-Coming soon
