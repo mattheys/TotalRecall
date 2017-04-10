@@ -148,7 +148,7 @@ namespace TotalRecall.Controllers
 
                     foreach (var item in Request.Query)
                     {
-                        if (item.Key == "timestamp")
+                        if (item.Key == "timestamp" || item.Key == "limit")
                         {
                             continue;
                         }
@@ -159,7 +159,29 @@ namespace TotalRecall.Controllers
                         }
                     }
 
-                    var listData = data.Include(d => d.DataItems).OrderByDescending(o => o.InsertDate).Take(2880).ToList();
+                    List<Data> listData = null;
+
+                    if (Request.Query.ContainsKey("limit"))
+                    {
+                        int i = 2880;
+                        foreach (var limit in Request.Query["limit"])
+                        {
+                            if (int.TryParse(limit, out int limitInt))
+                            {
+                                if (limitInt >= 0)
+                                {
+                                    i = Math.Min(i, limitInt);
+                                }
+                            }
+                        }
+                        listData = data.Include(d => d.DataItems).OrderByDescending(o => o.InsertDate).Take(i).ToList();
+                    }
+                    else
+                    {
+                        listData = data.Include(d => d.DataItems).OrderByDescending(o => o.InsertDate).Take(2880).ToList();
+                    }
+
+                    
 
                     foreach (var item in listData)
                     {
