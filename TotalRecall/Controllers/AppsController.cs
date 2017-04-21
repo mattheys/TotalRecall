@@ -5,6 +5,7 @@ using System.Linq;
 using Microsoft.AspNetCore.Mvc;
 using TotalRecall.Models;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Net.Http.Headers;
 
 // For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
@@ -55,6 +56,16 @@ namespace TotalRecall.Controllers
         {
             ViewData["Title"] = "New application";
             return View();
+        }
+
+        [Route("Apps/Download/{AdminKey}")]
+        public IActionResult Download(Guid AdminKey)
+        {
+            using (var trContext = new TRContext())
+            {
+                var app = trContext.Applications.Where(q => q.AdminKey == AdminKey).FirstOrDefault();
+                return new FileStreamResult(System.IO.File.Open("dbs" + System.IO.Path.DirectorySeparatorChar + app.PublicKey.ToString() + ".db", System.IO.FileMode.Open, System.IO.FileAccess.ReadWrite), "application/octet-stream");
+            }
         }
 
         [Route("Apps/Browse")]
@@ -181,7 +192,7 @@ namespace TotalRecall.Controllers
                         listData = data.Include(d => d.DataItems).OrderByDescending(o => o.InsertDate).Take(2880).ToList();
                     }
 
-                    
+
 
                     foreach (var item in listData)
                     {
@@ -297,10 +308,8 @@ namespace TotalRecall.Controllers
                 }
 
             }
-            catch (Exception e)
+            catch (Exception)
             {
-
-                throw;
             }
 
             return View(trApp);
