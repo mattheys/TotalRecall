@@ -11,6 +11,10 @@ namespace TotalRecall
     {
         public static string ProgramName = "Total Recall";
         public static bool PubliclyAvailable = false;
+        public static readonly int DBPrunePeriodInDays = 30;  //Days that DBs should not have been written to before being deleted.
+        public static readonly int DBWarningPeriodInDays = 15;  //Days that DBs should not have been written to before sending user an email if we have one.
+
+
 
         public static void Main(string[] args)
         {
@@ -26,7 +30,7 @@ namespace TotalRecall
 
             var config = new ConfigurationBuilder()
                 .SetBasePath(Directory.GetCurrentDirectory())
-                .AddJsonFile("hosting.json", optional: true)
+                .AddJsonFile("hosting.json", optional: true, reloadOnChange: true)
                 .Build();
 
             var host = new WebHostBuilder()
@@ -42,10 +46,55 @@ namespace TotalRecall
             {
                 trContext.Database.EnsureCreated();
             }
-
+            
             Directory.CreateDirectory("dbs");
+
+            var updateCheckInterval = 0;
+            var updateCheckInitialDelay = (int)(new TimeSpan(12, 0, 0)).TotalMilliseconds;
+
+            var maintenanceInitialDelay = (int)(new TimeSpan(0, 15, 0)).TotalMilliseconds;
+            var maintenanceInterval = (int)(new TimeSpan(1, 0, 0)).TotalMilliseconds;
+
+            Timer updateTimer = new Timer(new TimerCallback(UpdateCallback), null, updateCheckInitialDelay, updateCheckInterval);
+            Timer maintenanceTimer = new Timer(new TimerCallback(MaintenanceCallback), null, maintenanceInitialDelay, maintenanceInterval);
 
             host.Run();
         }
+
+        static void UpdateCallback(object state)
+        {
+            //Need to try and work out a continuous delivery method from github.
+        }
+        static void MaintenanceCallback(object state)
+        {
+            PruneDbsFromFilesystem();
+        }
+
+        static void PruneDbsFromFilesystem()
+        {
+            var Context = new Models.TRContext();
+
+            foreach (var item in new DirectoryInfo("dbs").GetFiles("*.db"))
+            {
+                try
+                {
+                    if ((DateTime.Now - item.LastAccessTime).TotalDays > DBPrunePeriodInDays)
+                    {
+                        if (Guid.TryParse(Path.GetFileNameWithoutExtension(item.FullName), out Guid publicKey))
+                        {
+                            var app = Context.Applications.Where(q => q.PublicKey == publicKey).FirstOrDefault();
+                            Context.Applications.Remove(app);
+                            Context.SaveChanges();
+                        }
+                        item.Delete();
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex.Message);
+                }
+            }
+        }
+
     }
 }
