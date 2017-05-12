@@ -11,8 +11,9 @@ namespace TotalRecall
     {
         public static string ProgramName = "Total Recall";
         public static bool PubliclyAvailable = false;
-        public static readonly int DBPrunePeriodInDays = 30;  //Days that DBs should not have been written to before being deleted.
-        public static readonly int DBWarningPeriodInDays = 15;  //Days that DBs should not have been written to before sending user an email if we have one.
+
+        public const int DBPrunePeriodInDays = 30;  //Days that DBs should not have been written to before being deleted.
+        public const int DBWarningPeriodInDays = 15;  //Days that DBs should not have been written to before sending user an email if we have one.
 
 
 
@@ -54,6 +55,15 @@ namespace TotalRecall
 
             var maintenanceInitialDelay = (int)(new TimeSpan(0, 15, 0)).TotalMilliseconds;
             var maintenanceInterval = (int)(new TimeSpan(1, 0, 0)).TotalMilliseconds;
+
+#if DEBUG
+            updateCheckInterval = Timeout.Infinite;
+            updateCheckInitialDelay = Timeout.Infinite;
+
+            maintenanceInitialDelay = 0;
+            maintenanceInterval = (int)(new TimeSpan(0, 5, 0)).TotalMilliseconds;
+#endif
+
 
             Timer updateTimer = new Timer(new TimerCallback(UpdateCallback), null, updateCheckInitialDelay, updateCheckInterval);
             Timer maintenanceTimer = new Timer(new TimerCallback(MaintenanceCallback), null, maintenanceInitialDelay, maintenanceInterval);
